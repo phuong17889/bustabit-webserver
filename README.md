@@ -8,15 +8,16 @@ These are instructions for running bustabit locally on a Debian / Ubuntu machine
 
 ### Distribution packages
 
-You will need to install the Postgres DBMS and node.js. The `nodejs-legacy`
+You will need to install the Postgres DBMS and node.js. The `nodejs`
 package installs `nodejs` but will additionally create a symlink from
 `/usr/bin/node` to `/usr/bin/nodejs`.
 
-    sudo apt-get install git npm postgresql nodejs-legacy
+    curl -fsSL https://deb.nodesource.com/setup_0.12 | sudo -E bash -
+    sudo apt install git npm postgresql nodejs
 
 ### Getting the sources
 
-    git clone https://github.com/moneypot/bustabit-webserver.git
+    git clone https://github.com/phuong17889/bustabit-webserver.git
     cd bustabit-webserver
 
 ### Create a database user and setup the tables
@@ -29,33 +30,7 @@ Create the database and setup the tables. The second command will prompt you
 for the password again.
 
     sudo -u postgres createdb -O bustabit bustabitdb
-    psql -W -U bustabit -d bustabitdb -h localhost -f server/schema.sql
-
-Mac OS X
---------
-
-These are instructions for running bustabit locally on a Mac using homebrew.
-
-### Install homebrew packages
-
-    brew install git node npm postgresql
-
-### Getting the sources
-
-    git clone https://github.com/moneypot/bustabit-webserver.git
-    cd bustabit-webserver
-
-### Create a database user and setup the tables
-
-Create a user. It will prompt you for a password.
-
-    createuser -P bustabit
-
-Create the database and setup the tables. The second command will prompt you
-for the password again.
-
-    createdb -O bustabit bustabitdb
-    psql -W -U bustabit -d bustabitdb -h localhost -f src/server/schema.sql
+    sudo -u postgres psql -W -U bustabit -d bustabitdb -h localhost -f server/sql/schema.sql
 
 
 Configuration
@@ -83,4 +58,4 @@ You will need to create a BIP32 key pair. You can do at your own risk online at 
 Running
 =======
 
-You can run the server by using `npm start`. By default it will listen on port `3841`.
+You can run the server by using `npm start`. By default, it will listen on port `3841`.
