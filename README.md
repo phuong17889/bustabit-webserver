@@ -1,7 +1,7 @@
 INSTALLATION
 ============
 
-Debian/Ubuntu
+Debian/Ubuntu 16
 -------------
 
 These are instructions for running bustabit locally on a Debian / Ubuntu machine.
@@ -13,7 +13,17 @@ package installs `nodejs` but will additionally create a symlink from
 `/usr/bin/node` to `/usr/bin/nodejs`.
 
     curl -fsSL https://deb.nodesource.com/setup_0.12 | sudo -E bash -
-    sudo apt install git npm postgresql nodejs
+    sudo apt install git npm postgresql nodejs libpq-dev python-psycopg2 postgresql-server-dev-all
+
+### Install plv8
+```
+cd /tmp
+wget https://github.com/plv8/plv8/archive/v2.0.0.tar.gz
+tar -xvzf v2.0.0.tar.gz
+cd plv8-2.0.0
+make static
+make install
+```
 
 ### Getting the sources
 
