@@ -68,4 +68,4 @@ You will need to create a BIP32 key pair. You can do at your own risk online at 
 Running
 =======
 
-You can run the server by using `npm start`. By default, it will listen on port `3841`.
+You can run the server by using `npm start`. By default, it will listen on port `3842`.

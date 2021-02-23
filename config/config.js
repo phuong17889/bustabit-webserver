@@ -17,7 +17,7 @@ module.exports = {
   "AWS_SES_KEY": process.env.AWS_SES_KEY,
   "AWS_SES_SECRET": process.env.AWS_SES_SECRET,
   "CONTACT_EMAIL": process.env.CONTACT_EMAIL || "ryan@moneypot.com",
-  "SITE_URL": process.env.SITE_URL || "http://localhost:3841",
+  "SITE_URL": process.env.SITE_URL || "http://localhost:3842",
   "ENC_KEY": process.env.ENC_KEY || "devkey",
   "SIGNING_SECRET": process.env.SIGNING_SECRET || "secret",
   "BANKROLL_OFFSET": parseInt(process.env.BANKROLL_OFFSET) || 0,
@@ -28,7 +28,7 @@ module.exports = {
   "BITCOIND_USER": process.env.BITCOIND_USER,
   "BITCOIND_PASS": process.env.BITCOIND_PASS,
   "BITCOIND_CERT": process.env.BITCOIND_CERT  || '',
-  "PORT":  process.env.PORT || 3841,
+  "PORT":  process.env.PORT || 3842,
   "MINING_FEE": process.env.MINING_FEE || 10000,
   "BUILD": prodConfig
 };
