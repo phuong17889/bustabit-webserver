@@ -26,7 +26,7 @@ function staticPageLogged(page, loggedGoTo) {
         });
     }
 }
- 
+
 function contact(origin) {
     assert(typeof origin == 'string');
 
@@ -140,7 +140,7 @@ function tableDev() {
 function requestDevOtt(id, callback) {
     var curl = require('curlrequest');
     var options = {
-        url: 'https://www.bustabit.com/ott',
+        url: '/ott',
         include: true ,
         method: 'POST',
         'cookie': 'id='+id
