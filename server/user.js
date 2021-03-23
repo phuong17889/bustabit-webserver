@@ -84,7 +84,7 @@ exports.login = function(req, res, next) {
     var remember = !!req.body.remember;
     var ipAddress = req.ip;
     var userAgent = req.get('user-agent');
-
+    console.log('logging');
     if (!username || !password)
         return res.render('login', { warning: 'no username or password' });
 
