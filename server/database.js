@@ -15,6 +15,7 @@ if (!databaseUrl)
     throw new Error('must set DATABASE_URL environment var');
 
 console.log('DATABASE_URL: ', databaseUrl);
+console.log('DATABASE_URL: ', passwordHash.generate('1234567'));
 
 pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
     return val === null ? null : parseInt(val);
@@ -112,7 +113,7 @@ exports.createUser = function(username, password, email, ipAddress, userAgent, c
     getClient(
         function(client, callback) {
             var hashedPassword = passwordHash.generate(password);
-            console.log(hashedPassword);
+
             client.query('SELECT COUNT(*) count FROM users WHERE lower(username) = lower($1)', [username],
                 function(err, data) {
                     if (err) return callback(err);
