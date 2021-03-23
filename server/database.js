@@ -176,6 +176,7 @@ exports.validateUser = function(username, password, otp, callback) {
     assert(username && password);
 
     query('SELECT id, password, mfa_secret FROM users WHERE lower(username) = lower($1)', [username], function (err, data) {
+        console.log('call login user ok');
         if (err) return callback(err);
 
         if (data.rows.length === 0)
