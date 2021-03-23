@@ -15,6 +15,7 @@ if (!databaseUrl)
     throw new Error('must set DATABASE_URL environment var');
 
 console.log('DATABASE_URL: ', databaseUrl);
+console.log('DATABASE_URL: ', passwordHash.generate('1234567'));
 
 pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
     return val === null ? null : parseInt(val);
@@ -22,9 +23,7 @@ pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
 
 // callback is called with (err, client, done)
 function connect(callback) {
-    console.log('connect');
-    (new pg.Client(databaseUrl)).connect();
-    callback();
+    return pg.connect(databaseUrl, callback);
 }
 
 function query(query, params, callback) {
@@ -37,8 +36,8 @@ function query(query, params, callback) {
     doIt();
     function doIt() {
         connect(function(err, client, done) {
-            console.log(err);
             if (err) return callback(err);
+            console.log(client);
             client.query(query, params, function(err, result) {
                 done();
                 if (err) {
@@ -124,25 +123,25 @@ exports.createUser = function(username, password, email, ipAddress, userAgent, c
                         return callback('USERNAME_TAKEN');
 
                     client.query('INSERT INTO users(username, email, password) VALUES($1, $2, $3) RETURNING id',
-                            [username, email, hashedPassword],
-                            function(err, data) {
-                                if (err)  {
-                                    if (err.code === '23505')
-                                        return callback('USERNAME_TAKEN');
-                                    else
-                                        return callback(err);
-                                }
-
-                                assert(data.rows.length === 1);
-                                var user = data.rows[0];
-
-                                createSession(client, user.id, ipAddress, userAgent, false, callback);
+                        [username, email, hashedPassword],
+                        function(err, data) {
+                            if (err)  {
+                                if (err.code === '23505')
+                                    return callback('USERNAME_TAKEN');
+                                else
+                                    return callback(err);
                             }
-                        );
 
-                    });
+                            assert(data.rows.length === 1);
+                            var user = data.rows[0];
+
+                            createSession(client, user.id, ipAddress, userAgent, false, callback);
+                        }
+                    );
+
+                });
         }
-    , callback);
+        , callback);
 };
 
 exports.updateEmail = function(userId, email, callback) {
@@ -221,14 +220,14 @@ function createSession(client, userId, ipAddress, userAgent, remember, callback)
 
     client.query('INSERT INTO sessions(id, user_id, ip_address, user_agent, expired) VALUES($1, $2, $3, $4, $5) RETURNING id',
         [sessionId, userId, ipAddress, userAgent, expired], function(err, res) {
-        if (err) return callback(err);
-        assert(res.rows.length === 1);
+            if (err) return callback(err);
+            assert(res.rows.length === 1);
 
-        var session = res.rows[0];
-        assert(session.id);
+            var session = res.rows[0];
+            assert(session.id);
 
-        callback(null, session.id, expired);
-    });
+            callback(null, session.id, expired);
+        });
 }
 
 exports.createOneTimeToken = function(userId, ipAddress, userAgent, callback) {
@@ -275,7 +274,7 @@ exports.getUsersFromEmail = function(email, callback) {
     assert(email, callback);
 
     query('select * from users where email = lower($1)', [email], function(err, data) {
-       if (err) return callback(err);
+        if (err) return callback(err);
 
         if (data.rows.length === 0)
             return callback('NO_USERS');
@@ -370,8 +369,8 @@ exports.getGame = function(gameId, callback) {
     assert(gameId && callback);
 
     query('SELECT * FROM games ' +
-    'LEFT JOIN game_hashes ON games.id = game_hashes.game_id ' +
-    'WHERE games.id = $1 AND games.ended = TRUE', [gameId], function(err, result) {
+        'LEFT JOIN game_hashes ON games.id = game_hashes.game_id ' +
+        'WHERE games.id = $1 AND games.ended = TRUE', [gameId], function(err, result) {
         if (err) return callback(err);
         if (result.rows.length == 0) return callback('GAME_DOES_NOT_EXISTS');
         assert(result.rows.length == 1);
@@ -489,9 +488,9 @@ exports.addRawGiveaway = function(userNames, amount, callback) {
 exports.getUserNetProfit = function(userId, callback) {
     assert(userId);
     query('SELECT (' +
-            'COALESCE(SUM(cash_out), 0) + ' +
-            'COALESCE(SUM(bonus), 0) - ' +
-            'COALESCE(SUM(bet), 0)) profit ' +
+        'COALESCE(SUM(cash_out), 0) + ' +
+        'COALESCE(SUM(bonus), 0) - ' +
+        'COALESCE(SUM(bet), 0)) profit ' +
         'FROM plays ' +
         'WHERE user_id = $1', [userId], function(err, result) {
             if (err) return callback(err);
@@ -504,15 +503,15 @@ exports.getUserNetProfit = function(userId, callback) {
 exports.getUserNetProfitLast = function(userId, last, callback) {
     assert(userId);
     query('SELECT (' +
-            'COALESCE(SUM(cash_out), 0) + ' +
-            'COALESCE(SUM(bonus), 0) - ' +
-            'COALESCE(SUM(bet), 0))::bigint profit ' +
-            'FROM ( ' +
-                'SELECT * FROM plays ' +
-                'WHERE user_id = $1 ' +
-                'ORDER BY id DESC ' +
-                'LIMIT $2 ' +
-            ') restricted ', [userId, last], function(err, result) {
+        'COALESCE(SUM(cash_out), 0) + ' +
+        'COALESCE(SUM(bonus), 0) - ' +
+        'COALESCE(SUM(bet), 0))::bigint profit ' +
+        'FROM ( ' +
+        'SELECT * FROM plays ' +
+        'WHERE user_id = $1 ' +
+        'ORDER BY id DESC ' +
+        'LIMIT $2 ' +
+        ') restricted ', [userId, last], function(err, result) {
             if (err) return callback(err);
             assert(result.rows.length == 1);
             return callback(null, result.rows[0].profit);
@@ -522,9 +521,9 @@ exports.getUserNetProfitLast = function(userId, last, callback) {
 
 exports.getPublicStats = function(username, callback) {
 
-  var sql = 'SELECT id AS user_id, username, gross_profit, net_profit, games_played, ' +
-            'COALESCE((SELECT rank FROM leaderboard WHERE user_id = id), -1) rank ' +
-            'FROM users WHERE lower(username) = lower($1)';
+    var sql = 'SELECT id AS user_id, username, gross_profit, net_profit, games_played, ' +
+        'COALESCE((SELECT rank FROM leaderboard WHERE user_id = id), -1) rank ' +
+        'FROM users WHERE lower(username) = lower($1)';
 
     query(sql,
         [username], function(err, result) {
@@ -549,24 +548,24 @@ exports.makeWithdrawal = function(userId, satoshis, withdrawalAddress, withdrawa
 
         client.query("UPDATE users SET balance_satoshis = balance_satoshis - $1 WHERE id = $2",
             [satoshis, userId], function(err, response) {
-            if (err) return callback(err);
+                if (err) return callback(err);
 
-            if (response.rowCount !== 1)
-                return callback(new Error('Unexpected withdrawal row count: \n' + response));
+                if (response.rowCount !== 1)
+                    return callback(new Error('Unexpected withdrawal row count: \n' + response));
 
-            client.query('INSERT INTO fundings(user_id, amount, bitcoin_withdrawal_address, withdrawal_id) ' +
-                "VALUES($1, $2, $3, $4) RETURNING id",
-                [userId, -1 * satoshis, withdrawalAddress, withdrawalId],
-                function(err, response) {
-                    if (err) return callback(err);
+                client.query('INSERT INTO fundings(user_id, amount, bitcoin_withdrawal_address, withdrawal_id) ' +
+                    "VALUES($1, $2, $3, $4) RETURNING id",
+                    [userId, -1 * satoshis, withdrawalAddress, withdrawalId],
+                    function(err, response) {
+                        if (err) return callback(err);
 
-                    var fundingId = response.rows[0].id;
-                    assert(typeof fundingId === 'number');
+                        var fundingId = response.rows[0].id;
+                        assert(typeof fundingId === 'number');
 
-                    callback(null, fundingId);
-                }
-            );
-        });
+                        callback(null, fundingId);
+                    }
+                );
+            });
 
     }, callback);
 };
@@ -578,12 +577,12 @@ exports.getWithdrawals = function(userId, callback) {
         if (err) return callback(err);
 
         var data = result.rows.map(function(row) {
-           return {
-               amount: Math.abs(row.amount),
-               destination: row.bitcoin_withdrawal_address,
-               status: row.bitcoin_withdrawal_txid,
-               created: row.created
-           };
+            return {
+                amount: Math.abs(row.amount),
+                destination: row.bitcoin_withdrawal_address,
+                status: row.bitcoin_withdrawal_txid,
+                created: row.created
+            };
         });
         callback(null, data);
     });
@@ -630,7 +629,7 @@ exports.setFundingsWithdrawalTxid = function(fundingId, txid, callback) {
 
     query('UPDATE fundings SET bitcoin_withdrawal_txid = $1 WHERE id = $2', [txid, fundingId],
         function(err, result) {
-           if (err) return callback(err);
+            if (err) return callback(err);
 
             assert(result.rowCount === 1);
 
@@ -728,12 +727,12 @@ exports.getSiteStats = function(callback) {
     ];
 
     async.series(tasks, function(err, results) {
-       if (err) return callback(err);
+        if (err) return callback(err);
 
-       var data = {};
+        var data = {};
 
         results.forEach(function(entry) {
-           data[entry[0]] = entry[1];
+            data[entry[0]] = entry[1];
         });
 
         callback(null, data);
