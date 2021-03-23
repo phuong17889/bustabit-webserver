@@ -4,26 +4,30 @@ var config = require('../config/config');
 
 var async = require('async');
 var lib = require('./lib');
-var pg = require('pg');
+var Client = require('pg').Client;
 var passwordHash = require('password-hash');
 var speakeasy = require('speakeasy');
 var m = require('multiline');
-
+var db;
 var databaseUrl = config.DATABASE_URL;
 
 if (!databaseUrl)
     throw new Error('must set DATABASE_URL environment var');
 
 console.log('DATABASE_URL: ', databaseUrl);
-console.log('DATABASE_URL: ', passwordHash.generate('1234567'));
+console.log('password (1234567): ', passwordHash.generate('1234567'));
 
-pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
-    return val === null ? null : parseInt(val);
-});
+//todo rào lại để test thử pg mới
+// pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
+//     return val === null ? null : parseInt(val);
+// });
 
 // callback is called with (err, client, done)
 function connect(callback) {
-    return pg.connect(databaseUrl, callback);
+    db = new Client({
+        databaseUrl,
+    });
+    return db.connect(callback);
 }
 
 function query(query, params, callback) {
@@ -55,7 +59,7 @@ function query(query, params, callback) {
 
 exports.query = query;
 
-pg.on('error', function(err) {
+db.on('error', function(err) {
     console.error('POSTGRES EMITTED AN ERROR', err);
 });
 
