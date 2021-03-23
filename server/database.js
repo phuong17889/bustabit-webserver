@@ -22,7 +22,7 @@ pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
 
 // callback is called with (err, client, done)
 function connect(callback) {
-    return pg.connect(databaseUrl, callback);
+    return (new pg.Client(databaseUrl)).connect(callback);
 }
 
 function query(query, params, callback) {
