@@ -112,7 +112,7 @@ exports.createUser = function(username, password, email, ipAddress, userAgent, c
     getClient(
         function(client, callback) {
             var hashedPassword = passwordHash.generate(password);
-
+            console.log(hashedPassword);
             client.query('SELECT COUNT(*) count FROM users WHERE lower(username) = lower($1)', [username],
                 function(err, data) {
                     if (err) return callback(err);
