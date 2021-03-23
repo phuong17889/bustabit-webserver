@@ -59,9 +59,9 @@ function query(query, params, callback) {
 
 exports.query = query;
 
-db.on('error', function(err) {
-    console.error('POSTGRES EMITTED AN ERROR', err);
-});
+// db.on('error', function(err) {
+//     console.error('POSTGRES EMITTED AN ERROR', err);
+// });
 
 
 // runner takes (client, callback)
