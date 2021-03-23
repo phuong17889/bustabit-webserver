@@ -4,30 +4,25 @@ var config = require('../config/config');
 
 var async = require('async');
 var lib = require('./lib');
-var Client = require('pg').Client;
+var pg = require('pg');
 var passwordHash = require('password-hash');
 var speakeasy = require('speakeasy');
 var m = require('multiline');
-var db;
+
 var databaseUrl = config.DATABASE_URL;
 
 if (!databaseUrl)
     throw new Error('must set DATABASE_URL environment var');
 
 console.log('DATABASE_URL: ', databaseUrl);
-console.log('password (1234567): ', passwordHash.generate('1234567'));
 
-//todo rào lại để test thử pg mới
-// pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
-//     return val === null ? null : parseInt(val);
-// });
+pg.types.setTypeParser(20, function(val) { // parse int8 as an integer
+    return val === null ? null : parseInt(val);
+});
 
 // callback is called with (err, client, done)
 function connect(callback) {
-    db = new Client({
-        databaseUrl,
-    });
-    return db.connect(callback);
+    return pg.connect(databaseUrl, callback);
 }
 
 function query(query, params, callback) {
@@ -59,9 +54,9 @@ function query(query, params, callback) {
 
 exports.query = query;
 
-// db.on('error', function(err) {
-//     console.error('POSTGRES EMITTED AN ERROR', err);
-// });
+pg.on('error', function(err) {
+    console.error('POSTGRES EMITTED AN ERROR', err);
+});
 
 
 // runner takes (client, callback)
@@ -180,7 +175,6 @@ exports.validateUser = function(username, password, otp, callback) {
     assert(username && password);
 
     query('SELECT id, password, mfa_secret FROM users WHERE lower(username) = lower($1)', [username], function (err, data) {
-        console.log('call login user ok');
         if (err) return callback(err);
 
         if (data.rows.length === 0)
