@@ -17,7 +17,7 @@ module.exports = {
   "AWS_SES_KEY": process.env.AWS_SES_KEY,
   "AWS_SES_SECRET": process.env.AWS_SES_SECRET,
   "CONTACT_EMAIL": process.env.CONTACT_EMAIL || "ryan@moneypot.com",
-  "SITE_URL": process.env.SITE_URL || "http://besttrade.io/:3842",
+  "SITE_URL": process.env.SITE_URL || "http://besttrade.io:3842",
   "ENC_KEY": process.env.ENC_KEY || "devkey",
   "SIGNING_SECRET": process.env.SIGNING_SECRET || "secret",
   "BANKROLL_OFFSET": parseInt(process.env.BANKROLL_OFFSET) || 0,
